@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Puzzle generator</title>
+    <style>
+            #container{
+                display:grid;
+                background-color: beige;
+            }
+            .piece{
+                outline: 0.5px solid grey;
+    
+            }
+            img {
+                width: calc(100vw - 20px);
+            }
+            #draggable {
+                position: absolute;
+            }
+            #puzzlePiecesContainer {
+                display:grid;
+                background-color: lightblue;
+            }
+            .pieceImg {
+                /* position: absolute; */
+            }
+        </style>
+</head>
+
+
+
+<body class="theBody">
+
+    <form action="">
+        <input id="url" type="text" name="link" value="https://g77v3827gg2notadhhw9pew7-wpengine.netdna-ssl.com/wp-content/uploads/2017/09/puppy-vomiting_canna-pet-1024x682.jpg" required>
+        <input id="x" type="number" name="x" value="3" required>
+        <input id="y" type="number" name="y" value="3" required>
+        <input id="submitBtn" type="submit" value="Generate a puzzle!" onclick="" >
+    </form>
+
+    <div id="container"></div>
+
+    <img src="" alt="Puzzle image provided by the user">
+
+    <div id="puzzlePiecesContainer" ></div>
+
+
+    <script>
+        let imageAddress;
+        let numOfXPieces, numOfYPieces;
+        let container_width, container_height;
+
+        document.querySelector("form").addEventListener('submit', submitValues);
+        
+        function submitValues(event) {
+            event.preventDefault();
+            // submit image
+            imageAddress = document.querySelector("#url").value
+            document.querySelector("img").src = imageAddress;
+            container_width = document.querySelector("img").width;
+            container_height = document.querySelector("img").height;
+            // submit x, y
+            numOfXPieces = document.querySelector("#x").value;
+            numOfYPieces = document.querySelector("#y").value;
+
+            createGrid();
+            createImgPieces();
+        }
+
+        function createGrid() {
+            document.querySelector("#container").innerHTML = "";
+            document.querySelector("#container").style.gridTemplateColumns = `repeat(${numOfXPieces}, 1fr)`;
+            document.querySelector("#container").style.width = `${container_width}px`;
+
+            for (let y = 0; y < numOfYPieces; y++) {
+                for (let x = 0; x < numOfXPieces; x++) {
+                    let piece = document.createElement("div");
+                    piece.style.height = (container_height / numOfYPieces) + "px";
+                    piece.textContent =  `${x}${y}`;
+                    piece.dataset.dropid = `id${x}${y}`;
+                    piece.classList.add("piece");
+
+                    document.querySelector("#container").appendChild(piece);
+                }
+            }
+        }
+
+        function createImgPieces() {
+            document.querySelector("#puzzlePiecesContainer").style.gridTemplateColumns = `repeat(${numOfXPieces}, 1fr)`;
+            document.querySelector("#puzzlePiecesContainer").style.width = `${container_width}px`;
+
+            for (let y = 0; y < numOfYPieces; y++) {
+                for (let x = 0; x < numOfXPieces; x++) {
+                    let pieceImg = document.createElement("div");
+                    pieceImg.style.height = (container_height / numOfYPieces) + "px";
+                    pieceImg.style.backgroundImage = `url("${imageAddress}")`;
+                    pieceImg.style.backgroundSize = `${container_height}, ${container_width}`;
+
+                    pieceImg.style.backgroundPosition = (container_width / numOfXPieces) * x + "px" + (container_height / numOfYPieces) * y + "px";
+                    
+                    let bp = (container_width / numOfXPieces) * x + "px" + " " + (container_height / numOfYPieces) * y + "px";
+                    console.log('bp: ', bp);
+                    // console.log(pieceImg.style.backgroundPosition);
+                    
+
+                    pieceImg.textContent =  `${x}${y}`;
+                    pieceImg.dataset.dropid = `id${x}${y}`;
+                    pieceImg.classList.add("pieceImg");
+                    pieceImg.draggable = "true";
+
+
+                    document.querySelector("#puzzlePiecesContainer").appendChild(pieceImg);
+                }
+            }
+        }
+
+
+
+        document.querySelectorAll(".dot").forEach(eachDot => {
+            eachDot.style.left = `${Math.random()*500 + 250}px`;
+        });
+
+
+// !!!!! firstElementChild
+
+        let dragged;
+
+        /* events fired on the draggable target */
+        document.addEventListener("drag", function(event) {
+
+        });
+
+        document.addEventListener("dragstart", function(event) {
+            // store a ref. on the dragged elem
+            dragged = event.target;
+            // make it half transparent
+            event.target.style.opacity = .5;
+        });
+
+        document.addEventListener("dragend", function(event) {
+            // reset the transparency
+            event.target.style.opacity = "";
+        });
+
+        /* events fired on the drop targets */
+        document.addEventListener("dragover", function(event) {
+            // prevent default to allow drop
+            event.preventDefault();
+        });
+
+        //        document.addEventListener("dragenter", function(event) {
+        //            // highlight potential drop target when the draggable element enters it
+        //            if (event.target.className == "dropzone") {
+        //                event.target.style.background = "purple";
+        //            }
+        //
+        //        });
+
+        //        document.addEventListener("dragleave", function(event) {
+        //            // reset background of potential drop target when the draggable element leaves it
+        //            if (event.target.className == "dropzone") {
+        //                event.target.style.background = "";
+        //            }
+        //
+        //        });
+
+        document.addEventListener("drop", function(event) {
+            // prevent default action (open as link for some elements)
+            event.preventDefault();
+            console.log("DROP", event.target.className)
+            // move dragged elem to the selected drop target
+            if (event.target.className == "piece") {
+                event.target.style.background = "";
+                dragged.parentNode.removeChild(dragged);
+                event.target.appendChild(dragged);
+                dragged.style.left = event.target.style.left;
+                dragged.style.top = event.target.style.top;
+            } else if (event.target.className == "theBody") {
+                // park the dragged elem somewhere on the body
+                dragged.style.left = event.pageX+ "px";
+                dragged.style.top = event.pageY+ "px";
+            }
+
+        });
+
+    </script>
+</body>
+</html>
